@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -29,15 +30,23 @@ class AuthController extends Controller
             if ($validator->fails()) {
                 return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
             }
+
             //Request is valid, create new user
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'remember_token' => Str::random(16) . 'YmdHis',
+                'email_token' => Str::random(16) . 'YmdHis',
             ]);
+            $email = $user->email;
 
             $token = JWTAuth::fromUser($user);
+            //send welcome email
+            Mail::send('emails.users.welcome', ['user' => $user], function ($m) use ($email) {
+                $m->from('dougieey1123@gmail.com', 'Your Application');
+
+                $m->to($email, 'user name')->subject('Joe Goldberg says Welcome!');
+            });
             //User created, return success response
             return $this->respondWithSuccess('Registration successful', [
                 'user' => $user,
@@ -112,6 +121,24 @@ class AuthController extends Controller
         }
     }
 
+    public function verifyEmail(Request $request, $email_token)
+    {
+        $validator = Validator::make(['email_token' => $email_token], [
+            'email_token' => ['required', 'string', 'exists:users,email_token'],
+        ]);
+        if ($validator->fails()) {
+            return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
+        }
+        $user = User::where('email_token', $email_token)->first();
+        if ($user) {
+            $user->email_verified = 1;
+            $user->email_token = '';
+            $user->save();
+            return $this->respondWithSuccess('Email verified successfully', ['user' => $user, 'token' => JWTAuth::fromUser($user)]);
+        } else {
+            return $this->respondBadRequest('Token has expired');
+        }
+    }
     // public function get_user(Request $request)
     // {
     //     $this->validate($request, [
