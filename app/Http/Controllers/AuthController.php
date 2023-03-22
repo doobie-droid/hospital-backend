@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+
 
 class AuthController extends Controller
 {
