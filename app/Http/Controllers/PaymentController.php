@@ -39,7 +39,6 @@ class PaymentController extends Controller
                 "tx_ref" => "clafiya" . date('Ymdhis'),
                 "redirect_url" => getenv('BACKEND_URL')
             ];
-            return $this->respondWithSuccess($payload, $request);
             $encrypted_card_data = $this->encrypt(getenv('FLUTTERWAVE_ENCRYPTION_KEY'), $payload);
             $flutterwave = new Flutterwave;
             $response = $flutterwave->makeCardPayment($encrypted_card_data);
