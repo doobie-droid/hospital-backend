@@ -20,7 +20,7 @@
 						<table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
 							<tr>
 								<td align="center" style="word-break: break-word; font-family: &quot;Nunito Sans&quot;, Helvetica, Arial, sans-serif; font-size: 16px;">
-												<a href="{{ 'http://127.0.0.1:8000/api/email/' . $user['email_token'] }}" class="f-fallback button" target="_blank" style="color: #FFF; border-color: #0000FF; border-style: solid; border-width: 10px 18px; background-color: #0000FF; display: inline-block; text-decoration: none; border-radius: 3px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.16); -webkit-text-size-adjust: none; box-sizing: border-box;">Confirm your email</a>
+												<a href="{{ getenv('BACKEND_URL').'/email/verify/new/' . $user['email_token'] }}" class="f-fallback button" target="_blank" style="color: #FFF; border-color: #0000FF; border-style: solid; border-width: 10px 18px; background-color: #0000FF; display: inline-block; text-decoration: none; border-radius: 3px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.16); -webkit-text-size-adjust: none; box-sizing: border-box;">Confirm your email</a>
 											</td>
 										</tr>
 									</table>
@@ -35,7 +35,7 @@
 							<tr>
 								<td style="word-break: break-word; font-family: &quot;Nunito Sans&quot;, Helvetica, Arial, sans-serif; font-size: 16px;">
 									<p class="f-fallback sub" style="font-size: 13px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">If you’re having trouble with the button above, copy and paste the URL below into your web browser.</p>
-									<p class="f-fallback sub" style="font-size: 13px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">{{ 'http://127.0.0.1:8000/api/email/' . $user['email_token'] }}</p>
+									<p class="f-fallback sub" style="font-size: 13px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">{{ getenv('BACKEND_URL').'/email/verify/new/' . $user['email_token'] }}</p>
 								</td>
 							</tr>
 						</table>

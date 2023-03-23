@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 
 class AppointmentController extends Controller
@@ -15,7 +16,6 @@ class AppointmentController extends Controller
     {
         try {
             $user = auth()->user();
-            Log::info($user);
 
             $unpaid_appointments = $user->appointments()->where('status', 0)->get();
             $paid_appointments = $user->appointments()->where('status', 1)->get();
@@ -55,7 +55,11 @@ class AppointmentController extends Controller
                 'status' => 0,
             ]);
             $appointment->status = 'pending';
+            // Mail::send('emails.users.welcome', ['user' => $user], function ($m) use ($email) {
+            //     $m->from('dougieey1123@gmail.com', 'Sign Up Almost Complete');
 
+            //     $m->to($email, 'user name')->subject('Joe Goldberg says Welcome!');
+            // });
             return $this->respondWithSuccess('Appointment successfully created', [
                 'appointment' => $appointment,
             ]);
