@@ -21,15 +21,5 @@ Route::get('/', function () {
 });
 
 Route::get('/email', function () {
-    return view('emails.users.welcome');
-});
-
-Route::get('/send-email', function () {
-    $user = User::findOrFail(1);
-    Mail::send('emails.users.welcome', ['user' => $user], function ($m) {
-        $m->from('dougieey1123@gmail.com', 'Your Application');
-
-        $m->to('lesliedouglas23@gmail.com', 'user name')->subject('Joe Goldberg says Welcome!');
-    });
-    return "Email Sent with attachment. Check your inbox.";
+    return view('emails.appointments.welcome', ['user' => User::first()]);
 });

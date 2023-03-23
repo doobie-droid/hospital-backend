@@ -13,6 +13,7 @@ class Appointment extends Model
     protected $hidden = [
         'payment_id',
         'status',
+        'user_id',
     ];
     protected $guarded = [
         'id',
