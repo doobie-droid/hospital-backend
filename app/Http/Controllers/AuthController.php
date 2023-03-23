@@ -60,20 +60,20 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => ['required', 'string', 'email', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'exists:users,email,deleted_at,NULL'],
                 'password' => ['required', 'string']
             ]);
 
             if ($validator->fails()) {
                 return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
             }
+            $user_email_verified = User::where('email', $request->email)->first()->email_verified;
+            if (!$user_email_verified) {
+                return $this->respondForbidden('Please verify your email first');
+            }
             if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
                 $user = Auth::user();
-                Log::info($user);
                 $token = JWTAuth::fromUser($user);
-                Log::info($token);
-
-
                 $key = "Authorization";
                 $secure = true;
                 $path = '/';
