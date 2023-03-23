@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AppointmentController;
 
 Route::post('login', [AuthController::class, 'authenticate']);
 Route::post('register', [AuthController::class, 'register']);
@@ -21,6 +22,15 @@ Route::group(['middleware' => ['jwt.auth']], function () {
 
     Route::post('flutterwave/make-payment/card', [PaymentController::class, 'flutterwaveCardPayment']);
     Route::post('flutterwave/verify-payment/card', [PaymentController::class, 'flutterwaveVerifyCardPayment']);
+
+    Route::group(['prefix' => 'appointments'], function () {
+        Route::get('/', [AppointmentController::class, 'get']);
+        Route::post('/', [AppointmentController::class, 'create']);
+        Route::patch('{appointment_id}', [AppointmentController::class, 'update']);
+        Route::delete('{appointment_id}', [AppointmentController::class, 'delete']);
+        Route::get('/all', [AppointmentController::class, 'getAll']);
+    });
+
 
     Route::post('paystack/make-payment/card', [PaymentController::class, 'paystackCardPayment']);
 });
