@@ -40,18 +40,15 @@ class AuthController extends Controller
                 'email_token' => Str::random(16) . 'YmdHis',
             ]);
             $email = $user->email;
-
-            $token = JWTAuth::fromUser($user);
             //send welcome email
             Mail::send('emails.users.welcome', ['user' => $user], function ($m) use ($email) {
-                $m->from('dougieey1123@gmail.com', 'Your Application');
+                $m->from('dougieey1123@gmail.com', 'Sign Up Almost Complete');
 
                 $m->to($email, 'user name')->subject('Joe Goldberg says Welcome!');
             });
             //User created, return success response
-            return $this->respondWithSuccess('Registration successful', [
-                'user' => $user,
-                'token' => $token,
+            return $this->respondWithSuccess('Registration successful,Proceed to log in with those details', [
+                'user' => $user
             ]);
         } catch (\Exception $exception) {
             // Log::error($exception);
@@ -72,7 +69,9 @@ class AuthController extends Controller
             }
             if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
                 $user = Auth::user();
+                Log::info($user);
                 $token = JWTAuth::fromUser($user);
+                Log::info($token);
 
 
                 $key = "Authorization";
@@ -135,7 +134,7 @@ class AuthController extends Controller
             $user->email_verified = 1;
             $user->email_token = '';
             $user->save();
-            return $this->respondWithSuccess('Email verified successfully', ['user' => $user, 'token' => JWTAuth::fromUser($user)]);
+            return $this->respondWithSuccess('Email verified successfully, You can now proceed to log in');
         } else {
             return $this->respondBadRequest('Token has expired');
         }

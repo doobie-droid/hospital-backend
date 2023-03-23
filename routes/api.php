@@ -8,7 +8,7 @@ use App\Http\Controllers\AppointmentController;
 
 Route::post('login', [AuthController::class, 'authenticate']);
 Route::post('register', [AuthController::class, 'register']);
-Route::get('email/{email_token}', [AuthController::class, 'verifyEmail']);
+Route::get('email/verify/new/{email_token}', [AuthController::class, 'verifyEmail']);
 
 
 Route::group(['middleware' => ['jwt.verify']], function () {
