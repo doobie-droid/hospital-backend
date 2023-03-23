@@ -47,7 +47,7 @@ class AuthController extends Controller
                 $m->to($email, 'user name')->subject('Joe Goldberg says Welcome!');
             });
             //User created, return success response
-            return $this->respondWithSuccess('Registration successful,Proceed to log in with those details', [
+            return $this->respondWithSuccess('Registration successful,Go to your email for verification then proceed to log in with those details', [
                 'user' => $user
             ]);
         } catch (\Exception $exception) {
