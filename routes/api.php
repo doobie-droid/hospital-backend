@@ -17,7 +17,8 @@ Route::group(['middleware' => ['jwt.verify']], function () {
 });
 
 Route::group(['middleware' => ['jwt.auth']], function () {
-    Route::post('flutterwave/make-payment', [PaymentController::class, 'flutterwavePayment']);
+    Route::post('flutterwave/verify-account', [PaymentController::class, 'flutterwaveVerifyAccount']);
+    Route::post('flutterwave/make-payment/card', [PaymentController::class, 'flutterwaveCardPayment']);
 
-    Route::post('paystack/make-payment', [PaymentController::class, 'paystackPayment']);
+    Route::post('paystack/make-payment/card', [PaymentController::class, 'paystackCardPayment']);
 });
