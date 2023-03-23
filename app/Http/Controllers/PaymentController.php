@@ -20,7 +20,7 @@ class PaymentController extends Controller
                 'expiry_month' => ['required', 'string', 'min:1', 'max:2'],
                 'expiry_year' => ['required', 'string', 'min:2', 'max:2'],
                 'amount' => ['required', 'string'],
-                'pin' => ['string', 'size:4'],
+                'pin' => ['required', 'string', 'size:4'],
 
             ]);
             //Send failed response if request is not valid
@@ -42,16 +42,57 @@ class PaymentController extends Controller
             $encrypted_card_data = $this->encrypt(getenv('FLUTTERWAVE_ENCRYPTION_KEY'), $payload);
             $flutterwave = new Flutterwave;
             $response = $flutterwave->makeCardPayment($encrypted_card_data);
+            if (isset($response->status_code) && ($response->status_code >= 400)) {
+                return $this->respondBadRequest('Payment failed', $response->data);
+            }
             if (isset($response->meta) && $response->meta->authorization->mode == 'pin') {
                 $authentication = ["mode" => "pin", "pin" => $request->pin];
                 $payload['authorization'] = $authentication;
+
                 $encrypted_card_data_with_pin = $this->encrypt(getenv('FLUTTERWAVE_ENCRYPTION_KEY'), $payload);
-                $final_response = $flutterwave->makeCardPayment($encrypted_card_data_with_pin);
-                return $this->respondWithSuccess('Payment is Successful', $final_response);
+                $response = $flutterwave->makeCardPayment($encrypted_card_data_with_pin);
+                switch ($response->meta->authorization->mode) {
+                    case 'otp':
+                        return $this->respondWithSuccess("Payment for {$response->data->amount} Naira is Pending!!...Go to our Card Payment Validation endpoint and finish up, your transaction Reference is {$response->data->flw_ref} ", $response->data->processor_response);
+                        break;
+                    case 'redirect':
+                        return $this->respondWithSuccess("Payment for {$response->data->amount} Naira is Pending!! Copy and Paste the link in the data field in your web browser or here on postman/insomniac to finish up", $response->meta->authorization->redirect);
+                        break;
+                    default:
+                }
+            } else if (isset($response->meta) && $response->meta->authorization->mode == "redirect") {
+                return $this->respondWithSuccess("Payment for {$response->data->amount} Naira is Pending!! Copy and Paste the link in the data field in your web browser or here on postman/insomniac to finish up", $response->meta->authorization->redirect);
+            } else if (isset($response->meta) && $response->meta->authorization->mode == "avs_noauth") {
+                return $this->respondBadRequest("Sorry, we do not support the Address Verification System payments at the moment, Use a different card that uses pin authentication or 3ds redirect");
+            } else {
+                return $this->respondBadRequest('Check your card details and try again');
             }
+
+            return $this->respondWithSuccess('Payment is Successful', $response->data->message);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
+        }
+    }
+    public function flutterwaveVerifyCardPayment(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'otp' => ['required', 'string'],
+                'transaction_reference' => ['required', 'string'],
+            ]);
+            if ($validator->fails()) {
+                return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
+            }
+            $payload = [
+                "otp" => $request->otp,
+                "flw_ref" => $request->transaction_reference,
+            ];
+            $flutterwave = new Flutterwave;
+            $response = $flutterwave->verifyCardPayment($payload);
             return $this->respondWithSuccess('Payment is Successful', $response);
         } catch (\Exception $exception) {
-            // Log::error($exception);
+            Log::error($exception);
             return $this->respondInternalError('Oops, an error occurred. Please try again later.');
         }
     }
@@ -73,7 +114,7 @@ class PaymentController extends Controller
             $response = $flutterwave->validateAccountNumber($account_number, $bank_code);
             return $this->respondWithSuccess('Account verified', $response);
         } catch (\Exception $exception) {
-            // Log::error($exception);
+            Log::error($exception);
             return $this->respondInternalError('Oops, an error occurred. Please try again later.');
         }
     }
