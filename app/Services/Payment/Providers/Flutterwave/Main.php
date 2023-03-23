@@ -37,4 +37,10 @@ class Main extends API
 
         return $this->_post('v3/charges?type=card', $data);
     }
+
+    public function verifyCardPayment(array $payload): \stdClass
+    {
+
+        return $this->_post('v3/validate-charge', $payload);
+    }
 }

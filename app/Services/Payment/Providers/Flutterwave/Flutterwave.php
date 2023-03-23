@@ -26,4 +26,9 @@ class Flutterwave
     {
         return $this->driver->makeCardPayment($encrypted_card_data);
     }
+
+    public function verifyCardPayment(array $payload): \stdClass
+    {
+        return $this->driver->verifyCardPayment($payload);
+    }
 }
