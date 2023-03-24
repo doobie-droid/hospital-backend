@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Services\Payment\Providers\Flutterwave\Flutterwave;
 use App\Jobs\Payments\Update as PaymentUpdateJob;
+use App\Models\Payment;
+use App\Models\Appointment;
 
 class PaymentController extends Controller
 {
@@ -30,6 +32,13 @@ class PaymentController extends Controller
             if ($validator->fails()) {
                 return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
             }
+
+            $appointment = Appointment::find($request->appointment_id);
+            if ($appointment->status == 1) {
+                return $this->respondWithSuccess('You have already paid for this appointment!, Nice try though');
+            }
+            return
+                $transaction_reference = "clafiya" . date('Ymdhis');
             $payload = [
                 "card_number" => $request->card_number,
                 "cvv" => $request->cvv,
@@ -39,8 +48,8 @@ class PaymentController extends Controller
                 "amount" => $request->amount,
                 "email" => "lesliedouglas23@gmail.com",
                 "fullname" => "Clafiya Developers",
-                "tx_ref" => "clafiya" . date('Ymdhis'),
-                "redirect_url" => getenv('BACKEND_URL')
+                "tx_ref" => $transaction_reference,
+                "redirect_url" => getenv('BACKEND_URL') . '/payments/verified/redirect'
             ];
             $encrypted_card_data = $this->encrypt(getenv('FLUTTERWAVE_ENCRYPTION_KEY'), $payload);
             $flutterwave = new Flutterwave;
@@ -50,6 +59,12 @@ class PaymentController extends Controller
                 return $this->respondBadRequest('Payment failed', $message);
             }
             if (isset($response->meta) && $response->meta->authorization->mode == 'pin') {
+                //create a payment table entry here
+                $payment = Payment::create([
+                    'clafiya_reference' => $payload['tx_ref'],
+                    'appointment_id' => $request->appointment_id,
+                    'status' => 'pending',
+                ]);
                 $authentication = ["mode" => "pin", "pin" => $request->pin];
                 $payload['authorization'] = $authentication;
 
@@ -71,7 +86,11 @@ class PaymentController extends Controller
                     default:
                 }
             } else if (isset($response->meta) && $response->meta->authorization->mode == "redirect") {
-                //successful transaction
+                $payment = Payment::create([
+                    'clafiya_reference' => $payload['tx_ref'],
+                    'appointment_id' => $request->appointment_id,
+                    'status' => 'pending',
+                ]);
                 return $this->respondWithSuccess("Payment for {$response->data->amount} Naira is Pending!! Copy and Paste the link in the data field in your web browser or here on postman/insomniac to finish up", $response->meta->authorization->redirect);
             } else if (isset($response->meta) && $response->meta->authorization->mode == "avs_noauth") {
                 return $this->respondBadRequest("Sorry, we do not support the Address Verification System payments at the moment, Use a different card that uses pin authentication or 3ds redirect");
@@ -139,6 +158,7 @@ class PaymentController extends Controller
                 Log::error("Webhook signature mismatch");
                 return $this->respondWithSuccess('Payment received successfully');
             }
+
             if ($request->event == 'charge.completed') {
                 $payload = [
                     'amount' => $request->data['amount'],
