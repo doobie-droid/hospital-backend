@@ -92,6 +92,7 @@ class Update implements ShouldQueue
     {
 
         $email = $this->user->email;
+
         Mail::send('emails.payments.index', ['user' => $this->user], function ($m) use ($email) {
             $m->from('dougieey1123@gmail.com', 'Clafiya Server error!');
 
