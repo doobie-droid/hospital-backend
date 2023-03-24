@@ -31,4 +31,9 @@ class Flutterwave
     {
         return $this->driver->verifyCardPayment($payload);
     }
+
+    public function verifyTransaction(string $id): \stdClass
+    {
+        return $this->driver->verifyTransaction($id);
+    }
 }

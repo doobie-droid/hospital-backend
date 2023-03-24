@@ -43,7 +43,7 @@ abstract class API implements APIInterface
         $this->perPage = (int) $perPage;
         return $this;
     }
-    public function _get($url = null, $parameter = [])
+    public function _get($url = null, $parameter = []): \stdClass
     {
         if ($perPage = $this->getPerPage()) {
             $parameter['limit'] = $perPage;
