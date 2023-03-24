@@ -17,10 +17,9 @@ return new class extends Migration
             $table->string('clafiya_reference')->unique()->nullable();
             $table->string('provider')->nullable();
             $table->string('provider_reference')->unique()->nullable();
-            $table->string('provider_status')->nullable();
             $table->foreignUuid('appointment_id');
             $table->string('status')->default('pending');
-            $table->string('payment_date')->nullable();
+            $table->date('payment_date')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

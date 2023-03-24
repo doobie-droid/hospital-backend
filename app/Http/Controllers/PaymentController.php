@@ -146,7 +146,7 @@ class PaymentController extends Controller
                     'currency' => $request->data['currency'],
                     'payment_provider' => 'Flutterwave',
                     'payment_provider_reference' => $request->data['flw_ref'],
-                    'payment_time' => time(),
+                    'verification_id' => $request->data['id'],
                     'status' => $request->data['status'],
                 ];
                 PaymentUpdateJob::dispatch($payload);
