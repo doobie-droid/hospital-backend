@@ -43,4 +43,9 @@ class Main extends API
 
         return $this->_post('v3/validate-charge', $payload);
     }
+
+    public function verifyTransaction(string $id): \stdClass
+    {
+        return $this->_get("v3/transactions/{$id}/verify");
+    }
 }
