@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
 
@@ -55,11 +54,13 @@ class AppointmentController extends Controller
                 'status' => 0,
             ]);
             $appointment->status = 'pending';
-            // Mail::send('emails.users.welcome', ['user' => $user], function ($m) use ($email) {
-            //     $m->from('dougieey1123@gmail.com', 'Sign Up Almost Complete');
+            $user = auth()->user();
+            $email = $user->email;
+            Mail::send('emails.appointments.welcome', ['user' => auth()->user()], function ($m) use ($email) {
+                $m->from('dougieey1123@gmail.com', 'Booking Process Started!');
 
-            //     $m->to($email, 'user name')->subject('Joe Goldberg says Welcome!');
-            // });
+                $m->to($email, 'user name')->subject('Thanks for using Clafiya!');
+            });
             return $this->respondWithSuccess('Appointment successfully created', [
                 'appointment' => $appointment,
             ]);
@@ -83,6 +84,13 @@ class AppointmentController extends Controller
                 return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
             }
             Appointment::whereId($id)->update($request->all());
+            $user = auth()->user();
+            $email = $user->email;
+            Mail::send('emails.appointments.update', ['user' => auth()->user()], function ($m) use ($email) {
+                $m->from('dougieey1123@gmail.com', 'Booking Updated!');
+
+                $m->to($email, 'user name')->subject('Thanks for using Clafiya!');
+            });
             return $this->respondWithSuccess('Update appointment successful', [
                 'appointment' => Appointment::whereId($id)->first(),
             ]);
@@ -104,6 +112,13 @@ class AppointmentController extends Controller
             $appointment = Appointment::find($id);
             $appointment_deleted = $appointment->delete(); //returns true/false
             if ($appointment_deleted) {
+                $user = auth()->user();
+                $email = $user->email;
+                Mail::send('emails.appointments.delete', ['user' => auth()->user()], function ($m) use ($email) {
+                    $m->from('dougieey1123@gmail.com', 'Booking Deleted!');
+
+                    $m->to($email, 'user name')->subject('Cancelled Clafiya Appointment!');
+                });
                 return $this->respondWithSuccess('Delete successful',);
             }
             return $this->respondWithSuccess('Delete failed');

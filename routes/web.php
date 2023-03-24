@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 use App\Models\User;
+use App\Services\Payment\Providers\Flutterwave\Flutterwave;
+use Illuminate\Support\Facades\Log;
 
 
 /*
@@ -21,15 +23,13 @@ Route::get('/', function () {
 });
 
 Route::get('/email', function () {
-    return view('emails.users.welcome');
-});
-
-Route::get('/send-email', function () {
-    $user = User::findOrFail(1);
-    Mail::send('emails.users.welcome', ['user' => $user], function ($m) {
-        $m->from('dougieey1123@gmail.com', 'Your Application');
-
-        $m->to('lesliedouglas23@gmail.com', 'user name')->subject('Joe Goldberg says Welcome!');
-    });
-    return "Email Sent with attachment. Check your inbox.";
+    $flutterwave = new Flutterwave;
+    $req = $flutterwave->verifyTransaction(4219558);
+    if ($req->status !== 'success' || $req->data->status !== 'successful') {
+        //update the payment table to show failed payment
+        return $this->respondWithSuccess('Payment received successfully');
+    }
+    //update the payment table to show successful payment
+    //notify the user of successful payment
+    dd($req);
 });

@@ -27,7 +27,7 @@
 								</td>
 							</tr>
 						</table>
-						<p style="font-size: 16px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">If you have any questions, feel free to <a href="mailto:jadebayo@clafiya.com" style="color: #0000FF;">send Adebayo an email or ask ChatGPT, she knowsss... things</a>.</p>
+						<p style="font-size: 16px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">If you have any questions, feel free to send <a href="mailto:jadebayo@clafiya.com" style="color: #0000FF;">Adebayo </a> an email or ask ChatGPT, she knowsss... things.</p>
 						<p style="font-size: 16px; line-height: 1.625; color: #51545E; margin: .4em 0 1.1875em;">Thanks,
 							<br /></p>
 						<!-- Sub copy -->

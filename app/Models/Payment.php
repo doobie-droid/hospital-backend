@@ -7,14 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Uuid;
 
-class Appointment extends Model
+class Payment extends Model
 {
-    use HasFactory, SoftDeletes, Uuid;
-    protected $hidden = [
-        'payment_id',
-        'status',
-        'user_id',
-    ];
+    use HasFactory, Uuid;
+    protected $hidden = [];
     protected $guarded = [
         'id',
     ];
@@ -22,9 +18,4 @@ class Appointment extends Model
     protected $casts = [];
 
     protected $guard_name = 'api';
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 }
