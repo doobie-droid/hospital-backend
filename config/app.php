@@ -209,7 +209,7 @@ return [
     */
 
     'aliases' =>  [
-
+        'Route'     => "Illuminate\Support\Facades\Route",
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
     ],

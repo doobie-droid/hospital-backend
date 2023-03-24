@@ -14,6 +14,12 @@ Route::get('email/verify/new/{email_token}', [AuthController::class, 'verifyEmai
 Route::post('flutterwave/webhook', [PaymentController::class, 'flutterwaveWebhook']);
 
 
+Route::get('/payments/verified/redirect/{response?}', function (string $response = null) {
+    return redirect('/');
+});
+
+
+
 
 Route::group(['middleware' => ['jwt.verify']], function () {
     Route::get('logout', [AuthController::class, 'logout']);

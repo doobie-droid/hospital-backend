@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('provider_reference')->unique()->nullable();
             $table->foreignUuid('appointment_id');
             $table->string('status')->default('pending');
-            $table->date('payment_date')->nullable();
+            $table->unsignedBigInteger('payment_date')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

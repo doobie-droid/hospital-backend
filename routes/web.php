@@ -19,17 +19,5 @@ use Illuminate\Support\Facades\Log;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/email', function () {
-    $flutterwave = new Flutterwave;
-    $req = $flutterwave->verifyTransaction(4219558);
-    if ($req->status !== 'success' || $req->data->status !== 'successful') {
-        //update the payment table to show failed payment
-        return $this->respondWithSuccess('Payment received successfully');
-    }
-    //update the payment table to show successful payment
-    //notify the user of successful payment
-    dd($req);
+    return 'Your payment was successful';
 });
