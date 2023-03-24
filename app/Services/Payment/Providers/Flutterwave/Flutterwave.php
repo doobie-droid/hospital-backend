@@ -3,9 +3,7 @@
 namespace App\Services\Payment\Providers\Flutterwave;
 
 
-use App\Models\PaymentAccount;
 use  App\Services\Payment\Providers\Flutterwave\Main;
-use Illuminate\Support\Facades\Log;
 
 class Flutterwave
 {

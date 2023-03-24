@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Services\Payment\Providers\Flutterwave\Flutterwave;
+use App\Services\Payment\Providers\Paystack\Paystack;
 use App\Jobs\Payments\Update as PaymentUpdateJob;
 use App\Models\Payment;
 use App\Models\Appointment;
@@ -37,8 +38,8 @@ class PaymentController extends Controller
             if ($appointment->status == 1) {
                 return $this->respondWithSuccess('You have already paid for this appointment!, Nice try though');
             }
-            return
-                $transaction_reference = "clafiya" . date('Ymdhis');
+
+            $transaction_reference = "clafiya" . date('Ymdhis');
             $payload = [
                 "card_number" => $request->card_number,
                 "cvv" => $request->cvv,
@@ -102,28 +103,7 @@ class PaymentController extends Controller
             return $this->respondInternalError('Oops, an error occurred. Please try again later.');
         }
     }
-    public function flutterwaveVerifyCardPayment(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'otp' => ['required', 'string'],
-                'transaction_reference' => ['required', 'string'],
-            ]);
-            if ($validator->fails()) {
-                return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
-            }
-            $payload = [
-                "otp" => $request->otp,
-                "flw_ref" => $request->transaction_reference,
-            ];
-            $flutterwave = new Flutterwave;
-            $response = $flutterwave->verifyCardPayment($payload);
-            return $this->respondWithSuccess('Payment is Successful', $response);
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
-        }
-    }
+
 
     public function flutterwaveVerifyAccount(Request $request)
     {
@@ -148,6 +128,166 @@ class PaymentController extends Controller
     }
 
     public function flutterwaveWebhook(Request $request)
+    {
+        try {
+            $webhook_secret = config('app.env') == 'testing' ? 'testing_secret' : config('payment.providers.flutterwave.webhook_secret');
+
+            $signature = $request->header('verif-hash');
+
+            if (!$signature || ($signature !== $webhook_secret)) {
+                Log::error("Webhook signature mismatch");
+                return $this->respondWithSuccess('Payment received successfully');
+            }
+
+            if ($request->event == 'charge.completed') {
+                $payload = [
+                    'amount' => $request->data['amount'],
+                    'clafiya_reference' => $request->data['tx_ref'],
+                    'currency' => $request->data['currency'],
+                    'payment_provider' => 'Flutterwave',
+                    'payment_provider_reference' => $request->data['flw_ref'],
+                    'verification_id' => $request->data['id'],
+                    'status' => $request->data['status'],
+                ];
+                PaymentUpdateJob::dispatch($payload);
+                Log::info("Webhook verified");
+                return $this->respondWithSuccess('Webhook verified');
+            }
+
+            return $this->respondWithSuccess('Payment received successfully');
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
+        }
+    }
+    public function flutterwaveVerifyCardPayment(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'otp' => ['required', 'string'],
+                'transaction_reference' => ['required', 'string'],
+            ]);
+            if ($validator->fails()) {
+                return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
+            }
+            $payload = [
+                "otp" => $request->otp,
+                "flw_ref" => $request->transaction_reference,
+            ];
+            $flutterwave = new Flutterwave;
+            $response = $flutterwave->verifyCardPayment($payload);
+            return $this->respondWithSuccess('Payment is Successful', $response);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
+        }
+    }
+
+    public function paystackMobilePayment(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'appointment_id' => ['required', 'string', 'exists:appointments,id,deleted_at,NULL'],
+                'phone' => ['required', 'string', 'min:9', 'max:11'],
+                'provider' => ['required', 'string', 'in:mtn,vod,tgo'],
+                'amount' => ['required'],
+                'email' => ["required", "email"],
+            ]);
+
+            if ($validator->fails()) {
+                return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
+            }
+            $appointment = Appointment::find($request->appointment_id);
+            if ($appointment->status == 1) {
+                return $this->respondWithSuccess('You have already paid for this appointment!, Nice try though');
+            }
+
+            $currency = 'NGN';
+
+            $payload = [
+                'amount' => $request->amount,
+                'email' => $request->email,
+                'currency' => $currency,
+                'mobile_money' => [
+                    'phone' => $request->phone,
+                    'provider' => $request->provider,
+                ],
+            ];
+            $paystack = new Paystack;
+            $response = $paystack->makeMobilePayment($payload);
+            if ($response->status_code >= 400) {
+                return $this->respondBadRequest('Sorry, there was an error, try a different method');
+            }
+            $transaction_reference = "clafiya" . date('Ymdhis');
+            $payment = Payment::create([
+                'clafiya_reference' => $transaction_reference,
+                'appointment_id' => $request->appointment_id,
+                'status' => 'pending',
+            ]);
+            return $this->respondWithSuccess(
+                'Your payment was successful',
+                ['data' => $response->data->display_text]
+            );
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
+        }
+    }
+
+    public function paystackUssdPayment(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'appointment_id' => ['required', 'string', 'exists:appointments,id,deleted_at,NULL'],
+                'type' => ['required', 'string', 'size:3',],
+                'amount' => ['required'],
+                'email' => ["required", "email"],
+            ]);
+
+            if ($validator->fails()) {
+                return $this->respondBadRequest('Invalid or missing input fields', $validator->errors()->toArray());
+            }
+            $appointment = Appointment::find($request->appointment_id);
+            if ($appointment->status == 1) {
+                return $this->respondWithSuccess('You have already paid for this appointment!, Nice try though');
+            }
+            $transaction_reference = "clafiya" . date('Ymdhis');
+            $payment = Payment::create([
+                'clafiya_reference' => $transaction_reference,
+                'appointment_id' => $request->appointment_id,
+                'status' => 'pending',
+            ]);
+            $payload = [
+                'email' => $request->email,
+                'amount' => $request->amount,
+                'ussd' => [
+                    'type' => $request->type,
+                ],
+                "metadata" => [
+                    "custom_fields" => [
+                        [
+                            "clafiya_reference" => $transaction_reference,
+                        ]
+                    ]
+                ],
+            ];
+            $paystack = new Paystack;
+            $response = $paystack->makeUssdPayment($payload);
+            if (!$response->status || (isset($response->status_code) && $response->status_code >= 400)) {
+                return $this->respondBadRequest('Sorry, there was an error, try a different method');
+            }
+
+            return $this->respondWithSuccess(
+                'Your payment was successful',
+                ['data' => $response->data->display_text]
+            );
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->respondInternalError('Oops, an error occurred. Please try again later.');
+        }
+    }
+
+    public function paystackWebhook(Request $request)
     {
         try {
             $webhook_secret = config('app.env') == 'testing' ? 'testing_secret' : config('payment.providers.flutterwave.webhook_secret');

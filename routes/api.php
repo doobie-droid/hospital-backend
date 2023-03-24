@@ -13,6 +13,8 @@ Route::get('email/verify/new/{email_token}', [AuthController::class, 'verifyEmai
 
 Route::post('flutterwave/webhook', [PaymentController::class, 'flutterwaveWebhook']);
 
+Route::post('paystack/webhook', [PaymentController::class, 'paystackWebhook']);
+
 
 Route::get('/payments/verified/redirect/{response?}', function (string $response = null) {
     return redirect('/');
@@ -23,8 +25,6 @@ Route::get('/payments/verified/redirect/{response?}', function (string $response
 
 Route::group(['middleware' => ['jwt.verify']], function () {
     Route::get('logout', [AuthController::class, 'logout']);
-
-    // Route::get('get_user', [AuthController::class, 'get_user']);
 });
 
 Route::group(['middleware' => ['auth:api']], function () {
@@ -42,5 +42,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     });
 
 
-    Route::post('paystack/make-payment/card', [PaymentController::class, 'paystackCardPayment']);
+    Route::post('paystack/make-payment/mobile', [PaymentController::class, 'paystackMobilePayment']);
+
+    Route::post('paystack/make-payment/ussd', [PaymentController::class, 'paystackUssdPayment']);
 });
