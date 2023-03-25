@@ -17,7 +17,7 @@ Route::post('paystack/webhook', [PaymentController::class, 'paystackWebhook']);
 
 
 Route::get('/payments/verified/redirect/{response?}', function (string $response = null) {
-    return redirect('/');
+    return redirect('/success');
 });
 
 

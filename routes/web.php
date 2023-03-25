@@ -19,5 +19,10 @@ use Illuminate\Support\Facades\Log;
 */
 
 Route::get('/', function () {
-    return 'Your payment was successful';
+    return view('welcome');
+});
+
+
+Route::get('/success', function () {
+    return view('success');
 });
