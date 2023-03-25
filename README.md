@@ -17,7 +17,7 @@ Make sure you install [docker](https://docs.docker.com/engine/install/ubuntu/) a
 
 ### Premium Partners
 
-After that, run the following commands in this order:
+After that, run the following commands in this order: <br>
 To set up your containers from the docker files/instructions there, run
 
 ```bash
