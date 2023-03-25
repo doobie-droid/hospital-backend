@@ -27,7 +27,7 @@ Route::group(['middleware' => ['jwt.verify']], function () {
     Route::get('logout', [AuthController::class, 'logout']);
 });
 
-Route::group(['middleware' => ['auth:api']], function () {
+Route::group(['middleware' => ['jwt.verify']], function () {
     Route::post('flutterwave/verify-account', [PaymentController::class, 'flutterwaveVerifyAccount']);
 
     Route::post('flutterwave/make-payment/card', [PaymentController::class, 'flutterwaveCardPayment']);
